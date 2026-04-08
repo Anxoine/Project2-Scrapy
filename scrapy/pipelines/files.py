@@ -531,7 +531,7 @@ class FilesPipeline(MediaPipeline):
         store_cls = self.STORE_SCHEMES[scheme]
         return store_cls(uri)
 
-    def media_to_download(
+    def media_to_download( # Could be bug location
         self, request: Request, info: MediaPipeline.SpiderInfo, *, item: Any = None
     ) -> Deferred[FileInfo | None] | None:
         def _onsuccess(result: StatInfo) -> FileInfo | None:
@@ -607,7 +607,8 @@ class FilesPipeline(MediaPipeline):
     ) -> FileInfo:
         referer = referer_str(request)
 
-        if response.status != 200:
+
+        if not (200 <= response.status < 300):
             logger.warning(
                 "File (code: %(status)s): Error downloading file from "
                 "%(request)s referred in <%(referer)s>",
