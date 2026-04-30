@@ -9,6 +9,7 @@ All current work is combined in the `final-submission` branch.
 
 - #1615: FilesPipeline now correctly accepts valid 2xx HTTP responses instead of only 200
 - #1163: FormRequest now raises a ValueError when formname or formid does not match any form
+- #7010: scrapy settings --get does not account for add-ons
 
 ## Notes
 All fixes were implemented following Scrapy's code structure and existing test patterns.
