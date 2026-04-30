@@ -4,6 +4,8 @@ from typing import Any, ClassVar
 
 from scrapy.commands import ScrapyCommand
 from scrapy.settings import BaseSettings
+from scrapy.utils.conf import build_component_list
+from scrapy.utils.misc import load_object
 
 
 class Command(ScrapyCommand):
@@ -49,6 +51,19 @@ class Command(ScrapyCommand):
     def run(self, args: list[str], opts: argparse.Namespace) -> None:
         assert self.settings is not None
         settings = self.settings
+
+        # Get the list of addons from settings
+        addons = build_component_list(settings.getwithbase("ADDONS"))
+
+        for addon_path in addons:
+            addon_cls = load_object(addon_path)
+            # Instantiate the addon
+            addon = addon_cls.from_settings(settings) if hasattr(addon_cls, 'from_settings') else addon_cls()
+
+            # 2. Trigger the settings update hooks
+            if hasattr(addon, "update_settings"):
+                addon.update_settings(settings)
+
         if opts.get:
             s = settings.get(opts.get)
             if isinstance(s, BaseSettings):
