@@ -1,4 +1,5 @@
 from __future__ import annotations
+from twisted.python.failure import  Failure
 
 import asyncio
 import contextlib
@@ -183,13 +184,22 @@ class Crawler:
             )
         self.crawling = self._started = True
 
+
         try:
             self.spider = self._create_spider(*args, **kwargs)
             self._apply_settings()
             self._update_root_log_handler()
             self.engine = self._create_engine()
-            yield deferred_from_coro(self.engine.open_spider_async())
+
+            yield  deferred_from_coro(self.engine.open_spider_async())
+             
+
+
             yield deferred_from_coro(self.engine.start_async())
+            
+              
+
+
         except Exception:
             self.crawling = False
             if self.engine is not None:
@@ -451,6 +461,14 @@ class CrawlerRunner(CrawlerRunnerBase):
             )
         crawler = self.create_crawler(crawler_or_spidercls)
         return self._crawl(crawler, *args, **kwargs)
+    
+
+    def _log_crawl_error(self,failure: Failure) -> Failure:
+        logger.error(
+            "error during crawl",exc_info=(type(failure.value),failure.value,
+                                            failure.getTracebackObject()),
+                     )
+        return failure
 
     @inlineCallbacks
     def _crawl(
@@ -458,13 +476,13 @@ class CrawlerRunner(CrawlerRunnerBase):
     ) -> Generator[Deferred[Any], Any, None]:
         self.crawlers.add(crawler)
         d = crawler.crawl(*args, **kwargs)
+        d.addErrback(self._log_crawl_error)
         self._active.add(d)
         failed = False
         try:
             yield d
-        except Exception:
+        except Exception as exc:
             failed = True
-            raise
         finally:
             self.crawlers.discard(crawler)
             self._active.discard(d)
@@ -575,19 +593,21 @@ class AsyncCrawlerRunner(CrawlerRunnerBase):
         self.crawlers.add(crawler)
 
         async def _crawl_and_track() -> None:
-            try:
                 await crawler.crawl_async(*args, **kwargs)
-            except Exception:
-                self.bootstrap_failed = True
-                raise  # re-raise so asyncio still logs it to stderr naturally
 
         task = loop.create_task(_crawl_and_track())
         self._active.add(task)
+        
 
-        def _done(_: asyncio.Task[None]) -> None:
+        def _done(t: asyncio.Task[None]) -> None:
             self.crawlers.discard(crawler)
             self._active.discard(task)
             self.bootstrap_failed |= not getattr(crawler, "spider", None)
+            if not t.cancelled():
+                exc = t.exception()
+                if exc is not None:
+                    logger.error("error while crawling %(spider)s",
+                                 {"spider":crawler.spidercls.name}, exc_info= exc)
 
         task.add_done_callback(_done)
         return task
