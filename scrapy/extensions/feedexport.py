@@ -167,11 +167,25 @@ class StdoutFeedStorage:
 @implementer(IFeedStorage)
 class FileFeedStorage:
     def __init__(self, uri: str, *, feed_options: dict[str, Any] | None = None):
-        self.path: str = file_uri_to_path(uri) if uri.startswith("file:") else uri
+        self.path: str = file_uri_to_path(self._normalize_file_uri(uri)) if uri.startswith("file:") else uri
         feed_options = feed_options or {}
         self.write_mode: OpenBinaryMode = (
             "wb" if feed_options.get("overwrite", False) else "ab"
         )
+
+    @staticmethod
+    def _normalize_file_uri(uri: str) -> str:
+        """Normalize a file URI that may contain Windows backslashes or be
+        missing the third slash before a drive letter (e.g. ``file://C:/path``
+        instead of the correct ``file:///C:/path``).  Non-file URIs and
+        already-correct URIs are returned unchanged."""
+        if not uri.startswith("file:"):
+            return uri
+        uri = uri.replace("\\", "/")
+        parsed = urlparse(uri)
+        if parsed.netloc and len(parsed.netloc) == 2 and parsed.netloc[1] == ":":
+            uri = "file:///" + parsed.netloc + parsed.path
+        return uri
 
     def open(self, spider: Spider) -> IO[bytes]:
         dirname = Path(self.path).parent
