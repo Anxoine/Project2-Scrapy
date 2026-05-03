@@ -483,6 +483,7 @@ class CrawlerRunner(CrawlerRunnerBase):
             yield d
         except Exception as exc:
             failed = True
+            raise
         finally:
             self.crawlers.discard(crawler)
             self._active.discard(d)
