@@ -1,5 +1,5 @@
 from __future__ import annotations
-from twisted.python.failure import  Failure
+
 
 import asyncio
 import contextlib
@@ -9,6 +9,7 @@ import signal
 import warnings
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, TypeVar
+from twisted.python.failure import  Failure
 
 from twisted.internet.defer import Deferred, DeferredList, inlineCallbacks
 
@@ -463,7 +464,7 @@ class CrawlerRunner(CrawlerRunnerBase):
         return self._crawl(crawler, *args, **kwargs)
     
 
-    def _log_crawl_error(self,failure: Failure) -> Failure:
+    def _log_crawl_error(self,failure: Failure) -> Failure:  #type: ignore[return]
         logger.error(
             "error during crawl",exc_info=(type(failure.value),failure.value,
                                             failure.getTracebackObject()),
@@ -594,12 +595,11 @@ class AsyncCrawlerRunner(CrawlerRunnerBase):
         self.crawlers.add(crawler)
 
         async def _crawl_and_track() -> None:
-                await crawler.crawl_async(*args, **kwargs)
+            await crawler.crawl_async(*args, **kwargs)
 
         task = loop.create_task(_crawl_and_track())
         self._active.add(task)
-        
-
+       
         def _done(t: asyncio.Task[None]) -> None:
             self.crawlers.discard(crawler)
             self._active.discard(task)
