@@ -124,14 +124,8 @@ class HTTP11DownloadHandler(BaseHttpDownloadHandler):
             crawler=self._crawler,
             tls_verbose_logging=self._tls_verbose_logging,
         )
-        try:
-            with wrap_twisted_exceptions():
-                return await maybe_deferred_to_future(agent.download_request(request))
-        except ResponseDataLossError:
-            if not self._fail_on_dataloss_warned:
-                logger.warning(get_dataloss_msg(request.url))
-                self._fail_on_dataloss_warned = True
-            raise
+        with wrap_twisted_exceptions():
+            return await maybe_deferred_to_future(agent.download_request(request))
 
     async def close(self) -> None:
         from twisted.internet import reactor
@@ -633,6 +627,7 @@ class _ResponseReader(Protocol):
         self._ip_address: ipaddress.IPv4Address | ipaddress.IPv6Address | None = None
         self._crawler: Crawler = crawler
         self._tls_verbose_logging: bool = tls_verbose_logging
+        self._warned: bool = False
 
     def _finish_response(
         self, flags: list[str] | None = None, stop_download: StopDownload | None = None
@@ -724,6 +719,10 @@ class _ResponseReader(Protocol):
             if not self._fail_on_dataloss:
                 self._finish_response(flags=["dataloss"])
                 return
+
+            if not self._warned:
+                logger.warning(get_dataloss_msg(self._request.url))
+                self._warned = True
 
             exc = ResponseDataLossError()
             exc.__cause__ = reason.value

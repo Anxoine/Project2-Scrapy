@@ -58,7 +58,11 @@ class Command(ScrapyCommand):
         for addon_path in addons:
             addon_cls = load_object(addon_path)
             # Instantiate the addon
-            addon = addon_cls.from_settings(settings) if hasattr(addon_cls, 'from_settings') else addon_cls()
+            addon = (
+                addon_cls.from_settings(settings)
+                if hasattr(addon_cls, "from_settings")
+                else addon_cls()
+            )
 
             # 2. Trigger the settings update hooks
             if hasattr(addon, "update_settings"):

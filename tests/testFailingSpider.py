@@ -1,18 +1,21 @@
-from scrapy import Spider
 import logging
+
+from scrapy import Spider
 from scrapy.crawler import CrawlerProcess
+
 
 class FailingSpider(Spider):
     name = "fail"
 
-    def __init__(self,*args, **kwargs):
+    def __init__(self, *args, **kwargs):
         print("parse hit")
         raise RuntimeError("simulated init error")
+
 
 def test_crawl_error_logged_not_unhandled(caplog):
     process = CrawlerProcess({"TWISTED_REACTOR_ENABLED": True, "LOG_LEVEL": "DEBUG"})
     process.crawl(FailingSpider)
-    
+
     with caplog.at_level(logging.ERROR):
         process.start()
 

@@ -6,9 +6,8 @@ See documentation in docs/topics/downloader-middleware.rst
 
 from __future__ import annotations
 
-import warnings
 import logging
-logger = logging.getLogger(__name__)
+import warnings
 from functools import wraps
 from typing import TYPE_CHECKING, Any, cast
 
@@ -31,6 +30,8 @@ if TYPE_CHECKING:
 
     from scrapy import Spider
     from scrapy.settings import BaseSettings
+
+logger = logging.getLogger(__name__)
 
 
 class DownloaderMiddlewareManager(MiddlewareManager):
@@ -162,7 +163,7 @@ class DownloaderMiddlewareManager(MiddlewareManager):
             except Exception:
                 logger.error(
                     "Exception in downloader middleware process_Exception",
-                    exc_info = True,
+                    exc_info=True,
                 )
                 raise
         try:
@@ -170,9 +171,8 @@ class DownloaderMiddlewareManager(MiddlewareManager):
         except Exception:
             logger.error(
                 "exception in downloader middleware process_response",
-                exc_info = True,
+                exc_info=True,
             )
             raise
             # either returns a request or response (which we pass to process_response())
             # or reraises the exception
-        

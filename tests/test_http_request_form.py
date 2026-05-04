@@ -598,7 +598,9 @@ class TestFormRequest(TestRequest):
             <input type="hidden" name="one" value="1">
             </form>"""
         )
-        with pytest.raises(ValueError, match='No <form> element found with name="form3"'):
+        with pytest.raises(
+            ValueError, match='No <form> element found with name="form3"'
+        ):
             self.request_class.from_response(response, formname="form3")
 
     def test_from_response_formname_errors_formnumber(self):
@@ -610,7 +612,9 @@ class TestFormRequest(TestRequest):
             <input type="hidden" name="two" value="2">
             </form>"""
         )
-        with pytest.raises(ValueError, match='No <form> element found with name="form3"'):
+        with pytest.raises(
+            ValueError, match='No <form> element found with name="form3"'
+        ):
             self.request_class.from_response(response, formname="form3", formnumber=2)
 
     def test_from_response_formid_exists(self):
@@ -640,7 +644,9 @@ class TestFormRequest(TestRequest):
             <input type="hidden" name="four" value="4">
             </form>"""
         )
-        with pytest.raises(ValueError, match='No <form> element found with name="form3"'):
+        with pytest.raises(
+            ValueError, match='No <form> element found with name="form3"'
+        ):
             self.request_class.from_response(response, formname="form3", formid="form2")
 
     def test_from_response_formid_nonexistent(self):

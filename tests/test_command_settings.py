@@ -1,7 +1,8 @@
-import sys
 import os
 import subprocess
+import sys
 from pathlib import Path
+
 import pytest
 
 
@@ -45,9 +46,13 @@ def execute_scrapy_settings_command(working_directory, *cli_arguments):
 
     # Ensure the local Scrapy source code is prioritized in the environment
     scrapy_source_root = str(Path(__file__).resolve().parents[1])
-    execution_env["PYTHONPATH"] = os.pathsep.join([str(working_directory), scrapy_source_root])
+    execution_env["PYTHONPATH"] = os.pathsep.join(
+        [str(working_directory), scrapy_source_root]
+    )
 
-    full_command = [sys.executable, "-m", "scrapy.cmdline", "settings"] + list(cli_arguments)
+    full_command = [sys.executable, "-m", "scrapy.cmdline", "settings"] + list(  # noqa: RUF005
+        cli_arguments
+    )
 
     process_result = subprocess.run(
         full_command,
@@ -55,16 +60,23 @@ def execute_scrapy_settings_command(working_directory, *cli_arguments):
         env=execution_env,
         capture_output=True,
         text=True,
-        check=True
+        check=True,
     )
     return process_result.stdout.strip()
 
 
-@pytest.mark.parametrize("command_flag, settings_key, expected_output", [
-    ("--get", "ADDON_DEBUG_KEY", "addon_active"),
-    ("--getbool", "ADDON_BOOL_KEY", "True"),
-    ("--get", "BOT_NAME", "testproject"),
-])
-def test_settings_command_reflects_addon_updates(mock_scrapy_project, command_flag, settings_key, expected_output):
-    actual_output = execute_scrapy_settings_command(mock_scrapy_project, command_flag, settings_key)
+@pytest.mark.parametrize(
+    "command_flag, settings_key, expected_output",  # noqa : PT006
+    [
+        ("--get", "ADDON_DEBUG_KEY", "addon_active"),
+        ("--getbool", "ADDON_BOOL_KEY", "True"),
+        ("--get", "BOT_NAME", "testproject"),
+    ],
+)
+def test_settings_command_reflects_addon_updates(
+    mock_scrapy_project, command_flag, settings_key, expected_output
+):
+    actual_output = execute_scrapy_settings_command(
+        mock_scrapy_project, command_flag, settings_key
+    )
     assert actual_output == expected_output
