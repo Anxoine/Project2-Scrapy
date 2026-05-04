@@ -107,6 +107,11 @@ class BaseRedirectMiddleware:
             ]
             redirected.dont_filter = request.dont_filter
             redirected.priority = request.priority + self.priority_adjust
+            old_host = urlparse_cached(request).hostname
+            new_host = urlparse_cached(redirected).hostname
+
+            if old_host != new_host:
+                redirected.meta.pop("download_slot", None)
             logger.debug(
                 "Redirecting (%(reason)s) to %(redirected)s from %(request)s",
                 {"reason": reason, "redirected": redirected, "request": request},
