@@ -7,6 +7,8 @@ See documentation in docs/topics/downloader-middleware.rst
 from __future__ import annotations
 
 import warnings
+import logging
+logger = logging.getLogger(__name__)
 from functools import wraps
 from typing import TYPE_CHECKING, Any, cast
 
@@ -155,7 +157,22 @@ class DownloaderMiddlewareManager(MiddlewareManager):
             result: Response | Request = await process_request(request)
         except Exception as ex:
             await _defer_sleep_async()
+            try:
+                result = await process_exception(ex)
+            except Exception:
+                logger.error(
+                    "Exception in downloader middleware process_Exception",
+                    exc_info = True,
+                )
+                raise
+        try:
+            return await process_response(result)
+        except Exception:
+            logger.error(
+                "exception in downloader middleware process_response",
+                exc_info = True,
+            )
+            raise
             # either returns a request or response (which we pass to process_response())
             # or reraises the exception
-            result = await process_exception(ex)
-        return await process_response(result)
+        
