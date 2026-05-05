@@ -11,6 +11,8 @@ All current work is combined in the `final-submission` branch.
 - #1163: FormRequest now raises a ValueError when formname or formid does not match any form
 - #7010: scrapy settings --get does not account for add-ons
 - #6047: Improved unhandled exception handling for Crawler*.crawl()
+- #955: Fixed Windows file URI handling to ensure correct file output paths
+- #2141: Redirect handling now correct resets download_slot when redirecting across domains
 
 ## Notes
 All fixes were implemented following Scrapy's code structure and existing test patterns.
