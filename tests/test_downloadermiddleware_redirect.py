@@ -311,6 +311,24 @@ class TestRedirectMiddleware(Base.Test):
         )
         _test_passthrough(Request(url, meta={"handle_httpstatus_all": True}))
 
+    def test_cross_domain_redirect_clears_slot(self):
+        url = "http://www.example.com/301"
+        url2 = "http://www.other.com/redirected"
+        req = Request(url)
+        rsp = Response(url, headers={"Location": url2}, status=301)
+        result = self.mw.process_response(req, rsp)
+        assert isinstance(result, Request)
+        assert "download_slot" not in result.meta
+
+    def test_same_domain_redirect_keeps_slot(self):
+        url = "http://www.example.com/301"
+        url2 = "http://www.example.com/redirected"
+        req = Request(url, meta={"download_slot": "www.example.com"})
+        rsp = Response(url, headers={"Location": url2}, status=301)
+        result = self.mw.process_response(req, rsp)
+        assert isinstance(result, Request)
+        assert result.meta.get("download_slot") == "www.example.com"
+        
     def test_latin1_location(self):
         req = Request("http://scrapytest.org/first")
         latin1_location = "/ação".encode("latin1")  # HTTP historically supports latin1
