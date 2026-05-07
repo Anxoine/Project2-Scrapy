@@ -344,3 +344,52 @@ class TestDeprecatedSpiderArg(TestManagerBase):
             result = await mwman.download_async(download_func, req)
         assert result is resp
         assert not download_func.called
+
+
+class TestMiddlewareLogExceptions(TestManagerBase):
+    """Tests that exceptions in middlewares are logged with the new context messages."""
+
+    @coroutine_test
+    async def test_log_process_response_exception(self):
+        req = Request("http://example.com")
+        resp = Response("http://example.com")
+
+        class CrashingResponseMiddleware:
+            def process_response(self, request, response, spider):
+                raise RuntimeError("Crashing in process_response")
+
+        async with self.get_mwman() as mwman:
+            mwman._add_middleware(CrashingResponseMiddleware())
+
+            with (
+                pytest.raises(RuntimeError, match="Crashing in process_response"),
+                mock.patch("scrapy.core.downloader.middleware.logger") as mock_logger,
+            ):
+                await self._download(mwman, req, resp)
+            mock_logger.error.assert_called_with(
+                "exception in downloader middleware process_response", exc_info=True
+            )
+
+    @coroutine_test
+    async def test_log_process_exception_exception(self):
+        req = Request("http://example.com")
+
+        def download_func(request):
+            raise ValueError("Initial error")
+
+        class CrashingExceptionMiddleware:
+            def process_exception(self, request, exception, spider):
+                raise RuntimeError("Crashing in process_exception")
+
+        async with self.get_mwman() as mwman:
+            mwman._add_middleware(CrashingExceptionMiddleware())
+
+            with (
+                pytest.raises(RuntimeError, match="Crashing in process_exception"),
+                mock.patch("scrapy.core.downloader.middleware.logger") as mock_logger,
+            ):
+                await mwman.download_async(download_func, req)
+
+            mock_logger.error.assert_called_with(
+                "Exception in downloader middleware process_Exception", exc_info=True
+            )
