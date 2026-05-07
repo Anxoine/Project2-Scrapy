@@ -1402,3 +1402,48 @@ class TestFeedExportInit:
         crawler = get_crawler(settings_dict=settings)
         exporter = FeedExporter.from_crawler(crawler)
         assert isinstance(exporter, FeedExporter)
+
+    #issue 955 tests
+
+    def test_normalize_file_uri_windows_backslashes(self):
+        """backslash Windows URI converted to a valid file"""
+        uri = "file://C:\\Users\\user\\output.xml"
+        result = FileFeedStorage._normalize_file_uri(uri)
+        assert result == "file:///C:/Users/user/output.xml"
+    
+
+    def test_normalize_file_uri_mixed_slashes(self):
+        """mixed foward/back slash Windows URI is normalized"""
+        uri = "file://C:/Users\\user/output.xml"
+        result = FileFeedStorage._normalize_file_uri(uri)
+        assert result == result, "file:///C:/Users/user/output.xml"
+    
+    def test_normalize_file_uri_already_correct(self):
+        """well formed file:/// URI is returned unchanged"""
+        uri = "file:///C:/Users/user/output.xml"
+        result = FileFeedStorage._normalize_file_uri(uri)
+        assert result ==  "file:///C:/Users/user/output.xml"
+
+    def test_normalize_file_uri_non_file_scheme_unchanged(self):
+        """a non-file URI (s3://) is returned unchanged"""
+        uri = "s3://mybucket/path/to/output.xml"
+        result = FileFeedStorage._normalize_file_uri(uri)
+        assert result == "s3://mybucket/path/to/output.xml"
+
+    def test_normalize_file_uri_linux_unchanged(self):
+        """a linux style URI is returned unchanged"""
+        uri ="file:///home/user/output.xml"
+        result = FileFeedStorage._normalize_file_uri(uri)
+        assert result == "file:///home/user/output.xml"
+
+    def test_file_feed_storage_path_from_bad_windows_uri(self):
+        """FileFeedStorage.path resolves to the correct local path when 
+        constructed with a malformed Windows file URI"""
+        uri = "file://C:\\Users\\user\\output.xml"
+        storage = FileFeedStorage(uri,feed_options={"overwrite": True})
+        assert storage.path.replace("\\","/") == "C:/Users/user/output.xml"
+        
+    
+
+
+

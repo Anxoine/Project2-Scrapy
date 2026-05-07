@@ -469,8 +469,6 @@ class CrawlerRunner(CrawlerRunnerBase):
     ) -> Generator[Deferred[Any], Any, None]:
         self.crawlers.add(crawler)
         d = crawler.crawl(*args, **kwargs)
-        d.addErrback(self._log_crawl_error)
-        self._active.add(d)
         failed = False
 
         def _on_error(failure: Failure) -> None:
