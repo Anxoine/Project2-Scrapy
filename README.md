@@ -13,6 +13,7 @@ All current work is combined in the `final-submission` branch.
 - #6047: Improved unhandled exception handling for Crawler*.crawl()
 - #955: Fixed Windows file URI handling to ensure correct file output paths
 - #2141: Redirect handling now correct resets download_slot when redirecting across domains
+- #899: Exceptions raised in downloader middleware are quietly suppressed
 
 ## Notes
 All fixes were implemented following Scrapy's code structure and existing test patterns.
