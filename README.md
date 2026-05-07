@@ -17,5 +17,7 @@ All current work is combined in the `final-submission` branch.
 
 ## Notes
 All fixes were implemented following Scrapy's code structure and existing test patterns.
+For Issue #1163: https://github.com/scrapy/scrapy/pull/7438
+For Issue #1615: https://github.com/scrapy/scrapy/pull/7411
 
 Additional issues and fixes will be added to this branch as the project progresses.
