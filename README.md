@@ -23,3 +23,5 @@ For Issue #1163: https://github.com/scrapy/scrapy/pull/7438
 For Issue #1615: https://github.com/scrapy/scrapy/pull/7411
 
 Additional issues and fixes will be added to this branch as the project progresses.
+
+The `final-submission` branch was merged into the `main` branch on 5/7/2026.
